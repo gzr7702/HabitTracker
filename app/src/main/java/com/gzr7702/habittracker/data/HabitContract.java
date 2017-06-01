@@ -17,7 +17,7 @@ public class HabitContract{
         public static final String COLUMN_HABIT_NAME = "habit_name";
 
         // Today's date
-        public static final String COLUMN_DATE_TODAY = "date_today";
+        public static final String COLUMN_CURRENT_DATE = "current_date";
 
         // Boolean to track if habit was completed today
         public static final String COLUMN_COMPLETED_TODAY = "completed_today";
