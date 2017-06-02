@@ -11,9 +11,9 @@ import com.gzr7702.habittracker.data.HabitContract.HabitEntry;
  */
 
 public class HabitDbHelper extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 1;
 
     static final String DATABASE_NAME = "habit.db";
+    private static final int DATABASE_VERSION = 1;
 
     public HabitDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -22,11 +22,10 @@ public class HabitDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         final String SQL_CREATE_HABIT_TABLE = "CREATE TABLE " + HabitEntry.TABLE_NAME + " (" +
-                HabitEntry._ID + " INTEGER PRIMARY KEY," +
-                HabitEntry.COLUMN_HABIT_ID + " TEXT UNIQUE NOT NULL, " +
+                HabitEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 HabitEntry.COLUMN_HABIT_NAME + " TEXT NOT NULL, " +
-                HabitEntry.COLUMN_CURRENT_DATE + " REAL NOT NULL, " +
-                HabitEntry.COLUMN_COMPLETED_TODAY + " REAL NOT NULL " +
+                HabitEntry.COLUMN_CURRENT_DATE + " TEXT NOT NULL, " +
+                HabitEntry.COLUMN_COMPLETED_TODAY + " INTEGER NOT NULL DEFAULT 0" +
                 " );";
 
         sqLiteDatabase.execSQL(SQL_CREATE_HABIT_TABLE);
