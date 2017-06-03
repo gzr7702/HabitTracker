@@ -5,18 +5,36 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.gzr7702.habittracker.data.HabitContract.HabitEntry;
 import com.gzr7702.habittracker.data.HabitDbHelper;
 
+import java.lang.reflect.Array;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity {
 
-    private HabitDbHelper mDbHelper = null;
+    public static final String LOG_TAG = MainActivity.class.getSimpleName();
+    private HabitDbHelper mDbHelper;
+
+    String[] habits = {"Brush teeth", "Walk the dog", "Do the dishes", "Go for a walk"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mDbHelper = new HabitDbHelper(this);
+
+        for(int i = 0; i < habits.length; i++) {
+            insertHabit(habits[i]);
+        }
+
+        ArrayList<String> data = extractData();
+
+        Log.v(LOG_TAG, data.toString());
     }
 
     /*
@@ -25,21 +43,23 @@ public class MainActivity extends AppCompatActivity {
     public long insertHabit(String habit) {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
+        String today = DateFormat.getDateTimeInstance().format(new Date());
+
         ContentValues values = new ContentValues();
         values.put(HabitEntry.COLUMN_HABIT_NAME, habit);
+        values.put(HabitEntry.COLUMN_CURRENT_DATE, today);
+        // Added for completeness, but not really necessary
+        values.put(HabitEntry.COLUMN_COMPLETED_TODAY, 0);
         return db.insert(HabitEntry.TABLE_NAME, null, values);
     }
 
     /*
-        Return one babit record from the database
+        Return all habit records from the database
      */
-    public String getHabitReport(int id) {
+    public Cursor getAllHabits() {
 
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
-        String habitString;
 
-        // Define a projection that specifies which columns from the database
-        // you will actually use after this query.
         String[] projection = {
                 HabitEntry._ID,
                 HabitEntry.COLUMN_HABIT_NAME,
@@ -47,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
                 HabitEntry.COLUMN_COMPLETED_TODAY
         };
 
-        // Perform a query on the pets table
         Cursor cursor = db.query(
                 HabitEntry.TABLE_NAME,   // The table to query
                 projection,            // The columns to return
@@ -57,27 +76,28 @@ public class MainActivity extends AppCompatActivity {
                 null,                  // Don't filter by row groups
                 null);                   // The sort order
 
-        try {
+        return cursor;
+    }
 
-            int idColumnIndex = cursor.getColumnIndex(HabitEntry._ID);
-            int nameColumnIndex = cursor.getColumnIndex(HabitEntry.COLUMN_HABIT_NAME);
-            int currentDateColumnIndex = cursor.getColumnIndex(HabitEntry.COLUMN_CURRENT_DATE);
-            int completedColumnIndex = cursor.getColumnIndex(HabitEntry.COLUMN_COMPLETED_TODAY);
+    private ArrayList<String> extractData() {
+        String name;
+        String date;
+        String completed;
+        ArrayList<String> allData = new ArrayList<>();
 
-            String currentName = cursor.getString(nameColumnIndex);
-            String currentDate = cursor.getString(currentDateColumnIndex);
-            int completed = cursor.getInt(completedColumnIndex);
+        Cursor c = getAllHabits();
+        int nameIndex = c.getColumnIndex(HabitEntry.COLUMN_HABIT_NAME);
+        int dateIndex = c.getColumnIndex(HabitEntry.COLUMN_CURRENT_DATE);
+        int completedIndex = c.getColumnIndex(HabitEntry.COLUMN_COMPLETED_TODAY);
 
-            StringBuilder sb = new StringBuilder();
-            sb.append((idColumnIndex + " - " +
-                  currentName + " - " +
-                  currentDate + " - " +
-                  completed));
-            habitString = sb.toString();
-        } finally {
-            cursor.close();
+        while (c.moveToNext()) {
+            name = c.getString(nameIndex);
+            date = c.getString(dateIndex);
+            completed = c.getString(completedIndex);
+
+            allData.add(name + " " + date + " " + completed);
         }
-        return habitString;
+        return allData;
     }
 
 }
