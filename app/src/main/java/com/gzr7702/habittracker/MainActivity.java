@@ -6,13 +6,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.gzr7702.habittracker.data.HabitContract.HabitEntry;
 import com.gzr7702.habittracker.data.HabitDbHelper;
 
-import java.lang.reflect.Array;
 import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
@@ -28,13 +28,27 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mDbHelper = new HabitDbHelper(this);
 
+        // Create some ddata
         for(int i = 0; i < habits.length; i++) {
             insertHabit(habits[i]);
         }
 
-        ArrayList<String> data = extractData();
+        // Extract and display the data
+        String data = extractData();
 
-        Log.v(LOG_TAG, data.toString());
+        //Log.v(LOG_TAG, data.toString());
+        TextView text = (TextView) findViewById(R.id.display_text);
+        text.setText(data);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Delete test data from database so it doesn't show up
+        // each time we run the app
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        db.execSQL("DELETE FROM " + HabitEntry.TABLE_NAME);
+        Log.v(LOG_TAG, "Test Data Destroyed");
     }
 
     /*
@@ -79,25 +93,25 @@ public class MainActivity extends AppCompatActivity {
         return cursor;
     }
 
-    private ArrayList<String> extractData() {
+    private String extractData() {
         String name;
         String date;
         String completed;
-        ArrayList<String> allData = new ArrayList<>();
 
         Cursor c = getAllHabits();
         int nameIndex = c.getColumnIndex(HabitEntry.COLUMN_HABIT_NAME);
         int dateIndex = c.getColumnIndex(HabitEntry.COLUMN_CURRENT_DATE);
         int completedIndex = c.getColumnIndex(HabitEntry.COLUMN_COMPLETED_TODAY);
 
+        StringBuilder sb = new StringBuilder();
         while (c.moveToNext()) {
             name = c.getString(nameIndex);
             date = c.getString(dateIndex);
             completed = c.getString(completedIndex);
 
-            allData.add(name + " " + date + " " + completed);
+            sb.append(name + " " + date + " " + completed + "\n");
         }
-        return allData;
+        return sb.toString();
     }
 
 }
